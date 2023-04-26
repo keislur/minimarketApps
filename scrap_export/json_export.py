@@ -5,7 +5,7 @@ import sqlite3
 df = pd.read_json('scrap_export/categorized_data.json')
 
 # Buka koneksi ke database SQLite
-conn = sqlite3.connect('../minimarket.db')
+conn = sqlite3.connect('minimarket.db')
 
 # Simpan dataframe ke database SQLite
 df.to_sql('barang', conn, if_exists='append', index=False)
