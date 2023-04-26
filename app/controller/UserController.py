@@ -3,164 +3,98 @@ import datetime
 from app import response, app, db
 from flask import request
 from flask_jwt_extended import *
-from flask_login import logout_user
-from flask_jwt_extended import unset_jwt_cookies
+from flask import render_template
+from flask import jsonify, redirect, request
+
 
 # GET DATA
 def index():
-    try:
-        user = User.query.all()
-        data = formatArray(user)
-        return response.success(data, "Success!")
-    except Exception as e:
-        print(e)
-
-def formatArray(datas):
-    array = []
-
-    for i in datas:
-        array.append(singleObject(i))
-
-    return array
-
-def singleObject(data):
-    data = {
-        'id' : data.id,
-        'nama' : data.nama,
-        'username' : data.username,
-        'id_level' : data.id_level,
-        'alamat' : data.alamat,
-        'email' : data.email,
-        'no_telp' : data.no_telp
-    }
-
-    return data
+    users = User.query.all()
+    return render_template('admin-kasir/viewUser.html', users = users)
 
 # GET DATA BY DETAIL 
 def detail(id):
-    try:
+    user = User.query.filter_by(id=id).first()
+    if not user:
+        return response.badRequest([],'Data Level kosong....')
 
-        user = User.query.filter_by(id=id).first()
-        if not user:
-            return response.badRequest([],'Data Level kosong....')
-        
-        data = singleObject(user)
-
-        return response.success(data,'Sukses View Data!')
-    except Exception as e:
-        return(e)
-
+    return render_template('admin-kasir/detailUser.html', user = user)
 
 # POST DATA
 def save():
-    try:
-        nama = request.form.get('nama')
-        username = request.form.get('username')
-        password = request.form.get('password')
-        id_level = request.form.get('id_level')
-        alamat = request.form.get('alamat')
-        email = request.form.get('email')
-        no_telp = request.form.get('no_telp')
+    nama = request.form['nama']
+    username = request.form['username']
+    password = request.form['password']
+    id_level = request.form['id_level']
+    alamat = request.form['alamat']
+    email = request.form['email']
+    no_telp = request.form['no_telp']
+    users = User(nama=nama, username=username, id_level=id_level, alamat=alamat, email=email, no_telp=no_telp)
+    users.setPassword(password)
+    db.session.add(users)
+    db.session.commit()
 
-        input = [
-            {
-                'nama' : nama,
-                'username' : username,
-                'id_level': id_level,
-                'email' : email,
-                'alamat' : alamat,
-                'no_telp' : no_telp
-            }
-        ]        
-
-        users = User(nama=nama, username=username, id_level=id_level, alamat=alamat, email=email, no_telp=no_telp)
-        users.setPassword(password)
-        db.session.add(users)
-        db.session.commit()
-
-        return response.success(input,'Sukses Menambahkan Data!')
-    except Exception as e:
-        return(e)
-    
+    return redirect('/manage/user')
 
 # UPDATE DATA
 def ubah(id):
-    try:
-        nama = request.form.get('nama')
-        username = request.form.get('username')
-        password = request.form.get('password')
-        id_level = request.form.get('id_level')
-        alamat = request.form.get('alamat')
-        email = request.form.get('email')
-        no_telp = request.form.get('no_telp')
 
-        input = [
-            {
-                'nama' : nama,
-                'username' : username,
-                'password' : password,
-                'id_level': id_level,
-                'email' : email,
-                'alamat' : alamat,
-                'no_telp' : no_telp
-            }
-        ]
-
-        users = User.query.filter_by(id=id).first()
-        users.nama = nama
-        users.username = username
-        users.id_level = id_level
-        users.alamat = alamat
-        users.email = email
-        users.no_telp = no_telp
-        users.setPassword(password)
-
+    if request.method == 'POST':
+        user = User.query.filter_by(id=id).first()
+        if not user:
+            return response.badRequest([],'Data Tidak Ada!')
+        
+        db.session.delete(user)
         db.session.commit()
 
-        return response.success(input,'Sukses Edit Data!')
-    except Exception as e:
-        return(e)
+        nama = request.form['nama']
+        username = request.form['username']
+        password = request.form['password']
+        id_level = request.form['id_level']
+        alamat = request.form['alamat']
+        email = request.form['email']
+        no_telp = request.form['no_telp']
+        users = User(nama=nama, username=username, password=password, id_level=id_level, alamat=alamat, email=email, no_telp=no_telp)
+
+        db.session.add(users)
+        db.session.commit()
+        return redirect('/management/user/<id>')
+
+    return render_template('admin-kasir/editUser.html', users=users)
     
 def hapus(id):
-    try:
+    if request.method == 'POST':
         user = User.query.filter_by(id=id).first()
+
         if not user:
             return response.badRequest([],'Data user kosong....')
         
         db.session.delete(user)
         db.session.commit()
+        return redirect('/management/user')
 
-        return response.success('','Sukses Hapus Data!')
-
-    except Exception as e:
-        print(e)
+    return render_template('admin-kasir/hapusUser.html')
 
 # Login
 def login():
-    try:
-        email = request.form.get('email')
-        password = request.form.get('password')
-    
-        user = User.query.filter_by(email=email).first()
+    email = request.form['email']
+    password = request.form['password']
 
-        if not user:
-            return response.badRequest([],'Email tidak ditemukan!')
+    user = User.query.filter_by(email=email).first()
 
-        if not user.checkPassword(password):
-            return response.badRequest([],'Password Salah!')
+    if not user:
+        return response.badRequest([],'Email tidak ditemukan!')
 
-        data = singleObject(user)
+    if not user.checkPassword(password):
+        return response.badRequest([],'Password Salah!')
 
-        expires = datetime.timedelta(days=7)
-        expires_refresh = datetime.timedelta(days=7)
+    expires = datetime.timedelta(days=7)
+    expires_refresh = datetime.timedelta(days=7)
 
-        access_token = create_access_token(data, fresh=True, expires_delta=expires)
-        refresh_token = create_refresh_token(data, expires_delta=expires_refresh)
+    access_token = create_access_token(fresh=True, expires_delta=expires)
+    refresh_token = create_refresh_token(expires_delta=expires_refresh)
 
-        return response.success({
-            'data' : data,
-            'access_token' : access_token,
-            'refresh_token' : refresh_token
-        },'Sukses login!')
-    except Exception as e:
-        print(e)
+    if user.id_level == 1 or 2:
+        return render_template('admin-kasir/home.html')
+    if user.id_level == 3:
+        return render_template('pelanggan/home.html')    
