@@ -3,8 +3,6 @@ import datetime
 from app import response, app, db
 from flask import request
 from flask_jwt_extended import *
-from flask_login import logout_user
-from flask_jwt_extended import unset_jwt_cookies
 
 # GET DATA
 def index():

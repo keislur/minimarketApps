@@ -15,6 +15,7 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'+os.path.join(basedir,'minimarket.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_RECORD_QUERIES = True
+    # SQLALCHEMY_ENGINE_OPTIONS = {'connect_args': {'check_same_thread': False}}
 
     JWT_SECRET_KEY = str(os.environ.get("JWT_SECRET"))
 

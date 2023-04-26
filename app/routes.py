@@ -36,16 +36,16 @@ def logins():
 
 # ------------------------------------------------ User Controller ------------------------------------------------------
 @app.route('/user', methods=['GET', 'POST'])
-@jwt_required()
+# @jwt_required()
 def users():
-    currentRole = get_jwt_identity().get('id_level')
-    if currentRole == 1:
+    # currentRole = get_jwt_identity().get('id_level')
+    # if currentRole == 1:
         if request.method == 'GET':
             return UserController.index()
         else:
             return UserController.save()
-    else:
-        return response.badRequest([],'Anda tidak memiliki hak akses!')
+    # else:
+    #     return response.badRequest([],'Anda tidak memiliki hak akses!')
 
 
 @app.route('/user/<id>', methods=['GET', 'PUT','DELETE'])

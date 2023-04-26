@@ -5,9 +5,9 @@ from app.model.pembayaran import Pembayaran
 from app.model.barang import Barang
 
 class Transaksi(db.Model):
-    id = db.Column(db.BigInteger, primary_key = True, autoincrement=True)
-    id_user = db.Column(db.BigInteger, db.ForeignKey(User.id, ondelete='CASCADE'))
-    id_pembayaran = db.Column(db.BigInteger, db.ForeignKey(Pembayaran.id, ondelete='CASCADE'))
+    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
+    id_user = db.Column(db.Integer, db.ForeignKey(User.id, ondelete='CASCADE'))
+    id_pembayaran = db.Column(db.Integer, db.ForeignKey(Pembayaran.id, ondelete='CASCADE'))
     total_price = db.Column(db.BigInteger, nullable=False)
     created_at = db.Column(db.DateTime, default = datetime.utcnow)
     updated_at = db.Column(db.DateTime, default = datetime.utcnow)

@@ -2,8 +2,8 @@ from app import db
 from app.model.kategori import Kategori
 
 class Barang(db.Model):
-    id = db.Column(db.BigInteger, primary_key = True, autoincrement=True)
-    id_kategori = db.Column(db.BigInteger, db.ForeignKey(Kategori.id, ondelete='CASCADE'))
+    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
+    id_kategori = db.Column(db.Integer, db.ForeignKey(Kategori.id, ondelete='CASCADE'))
     kode = db.Column(db.BigInteger, nullable=False)
     nama = db.Column(db.String(50), nullable=False)
     harga = db.Column(db.BigInteger, nullable=False)
