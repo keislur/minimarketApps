@@ -1,6 +1,7 @@
 from app import response, app, db
 from flask import jsonify, request
 from app.model.transaksi import Transaksi, DetailTransaksi
+from app.model.barang import Barang
 from datetime import datetime
 
 def index():
@@ -31,7 +32,7 @@ def index():
 def save():
     id_user = request.json['id_user']
     id_pembayaran = request.json['id_pembayaran']
-    total_price = request.json['total_price']
+    total_price = 0
     detail_transaksi = request.json['detail_transaksi']
 
     new_transaksi = Transaksi(
@@ -43,8 +44,12 @@ def save():
     for dt in detail_transaksi:
         id_barang = dt['id_barang']
         qty = dt['qty']
-        price = dt['price']
-
+        barang = Barang.query.filter_by(id=id_barang).first()
+        price = barang.harga * qty
+        total_price += price
+        if not barang:
+            return response.badRequest([], 'Barang tidak ditemukan!')
+        
         new_detail_transaksi = DetailTransaksi(
             id_barang = id_barang,
             qty = qty,
@@ -52,6 +57,8 @@ def save():
         )
         new_transaksi.detail_transaksi.append(new_detail_transaksi)
     
+    new_transaksi.total_price = total_price
+
     db.session.add(new_transaksi)
     db.session.commit()
 
@@ -101,10 +108,12 @@ def ubah(id):
         db.session.delete(dt)
 
     # tambahkan detail transaksi baru
+    new_detail_transaksi_list = []
     for dt in detail_transaksi:
         id_barang = dt['id_barang']
+        barang = Barang.query.filter_by(id=id_barang).first()
         qty = dt['qty']
-        price = dt['price']
+        price = barang.harga * qty
 
         new_detail_transaksi = DetailTransaksi(
             id_barang=id_barang,
@@ -112,12 +121,18 @@ def ubah(id):
             price=price
         )
 
-        transaksi.detail_transaksi.append(new_detail_transaksi)
+        new_detail_transaksi_list.append(new_detail_transaksi)
+
+    # hitung total harga baru berdasarkan detail transaksi yang baru
+    total_price = sum(dt.price for dt in new_detail_transaksi_list)
+    transaksi.detail_transaksi = new_detail_transaksi_list
+    transaksi.total_price = total_price
 
     transaksi.updated_at = datetime.utcnow()
     db.session.commit()
 
     return response.success('', 'Sukses mengubah data!')
+    
 def hapus(id):
     transaksi = Transaksi.query.filter_by(id=id).first()
 
