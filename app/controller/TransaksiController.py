@@ -118,12 +118,15 @@ def ubah(id):
     db.session.commit()
 
     return response.success('', 'Sukses mengubah data!')
-
 def hapus(id):
     transaksi = Transaksi.query.filter_by(id=id).first()
 
     if not transaksi:
         return response.badRequest([], 'Transaksi tidak ditemukan!')
+    
+    # Remove all detail transaksi associated with the transaksi
+    for dt in transaksi.detail_transaksi:
+        db.session.delete(dt)
 
     db.session.delete(transaksi)
     db.session.commit()

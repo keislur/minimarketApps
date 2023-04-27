@@ -17,7 +17,7 @@ class Transaksi(db.Model):
         return '<Transaksi {}>'.format(self.name)
 
 class DetailTransaksi(db.Model):
-    id = db.Column(db.BigInteger, primary_key = True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
     id_transaksi = db.Column(db.BigInteger, db.ForeignKey(Transaksi.id, ondelete='CASCADE'), nullable = False)
     id_barang = db.Column(db.BigInteger, db.ForeignKey(Barang.id, ondelete='CASCADE'), nullable = False)
     qty = db.Column(db.BigInteger, nullable=False)
